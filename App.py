@@ -14,26 +14,26 @@ from sklearn.neural_network import MLPClassifier
 from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import classification_report, confusion_matrix, accuracy_score, f1_score
 
+import sys
 import cv2
 from mss import mss
 import time
 import pyautogui
 
-import ctypes
-user32 = ctypes.windll.user32
-screensize = user32.GetSystemMetrics(0), user32.GetSystemMetrics(1)
-screensize
-
+character = sys.argv[1]
+print("Farming Lair: {}".format(character))
 
 # In[2]:
 
-
-def process_directory(directory, label):
+def process_directory(directory, character=None):
     features = []
     for filename in os.listdir(directory):
-        if filename.endswith(".png"): 
+        if character != None and filename.startswith("{}-".format(character)):
             filepath = os.path.join(directory, filename)
-#             print(filepath)
+            features.append(preprocess(filepath))
+            # print(filepath)
+        elif character == None and filename.endswith(".jpg"):
+            filepath = os.path.join(directory, filename)
             features.append(preprocess(filepath))
     return features
 
@@ -43,16 +43,15 @@ def preprocess(filepath):
     height, width = image.shape
     return image.reshape(height*width,)
 
-
 # In[3]:
 
 
-def train_wave():
-    negative_samples = process_directory("negative-wave", 0)
+def train_wave(character):
+    negative_samples = process_directory("negative-wave", character=character)
     negative_samples = pd.DataFrame(np.array(negative_samples, dtype=np.float32))
     negative_samples["label"] = 0
 
-    positive_samples = process_directory("positive-wave", 1)
+    positive_samples = process_directory("positive-wave", character=character)
     positive_samples = pd.DataFrame(np.array(positive_samples, dtype=np.float32))
     positive_samples["label"] = 1
 
@@ -78,18 +77,18 @@ def train_wave():
     print("Confusion Matrix:\n{}".format(cm))
     
     return model, scaler
-wave_model, wave_scaler = train_wave()
+wave_model, wave_scaler = train_wave(character)
 
 
 # In[4]:
 
 
 def train_drop():
-    negative_samples = process_directory("negative-drop", 0)
+    negative_samples = process_directory("negative-drop")
     negative_samples = pd.DataFrame(np.array(negative_samples, dtype=np.float32))
     negative_samples["label"] = 0
 
-    positive_samples = process_directory("positive-drop", 1)
+    positive_samples = process_directory("positive-drop")
     positive_samples = pd.DataFrame(np.array(positive_samples, dtype=np.float32))
     positive_samples["label"] = 1
 
@@ -122,7 +121,7 @@ drop_model, drop_scaler = train_drop()
 
 
 def grab_drops(sct):
-#     monitor = {'top': 265, 'left': 750, 'width': 200, 'height': 35}
+    # drops = {'top': 265, 'left': 750, 'width': 200, 'height': 35}
     drops = {'top': 265, 'left': 1000, 'width': 200, 'height': 35}
     
     # Get raw pixels from the screen, save it to a Numpy array
@@ -134,8 +133,6 @@ def grab_drops(sct):
     cv2.namedWindow(winname) 
     cv2.moveWindow(winname, 830, 1000) 
     cv2.imshow(winname, img)
-    # FOR COLLECTING DATA
-    # cv2.imwrite("d-{}.png".format(time.time()), img)
     return img
     
 def grab_wave(sct):
@@ -148,43 +145,12 @@ def grab_wave(sct):
     cv2.namedWindow(winname) 
     cv2.moveWindow(winname, 1280, 1000) 
     cv2.imshow(winname, img)
-    # FOR COLLECTING DATA
-#     cv2.imwrite("w-{}.png".format(time.time()), img)
     return img
-
-
-# In[6]:
-
-
-# # FOR COLLECTING DATA
-
-# PREPARATION_LIMIT = 400
-# WAVE_LIMIT = 100
-# DROP_LIMIT = 50
-
-# preparation_counter = 0
-# wave_counter = 0
-# drop_counter = 0
-# no_drop_counter = 0
-
-# state = "preparation"
-
-# with mss() as sct:
-#     # Part of the screen to capture
-#     while "Screen capturing":
-#         wave = grab_wave(sct)
-#         drop = grab_drops(sct)
-
-#         # Press "q" to quit
-#         if cv2.waitKey(25) & 0xFF == ord("q"):
-#             cv2.destroyAllWindows()
-#             break
 
 
 # In[7]:
 
-
-PREPARATION_LIMIT = 400
+PREPARATION_LIMIT = 500
 WAVE_LIMIT = 100
 DROP_LIMIT = 50
 
@@ -202,7 +168,7 @@ with mss() as sct:
         last_time = time.time()
         
         if state == "preparation":
-            print("[{}][{}/{}] Preparing for battle".format(state, preparation_counter, PREPARATION_LIMIT))
+            print("[{}][{}%] Preparing for battle".format(state, round(preparation_counter/PREPARATION_LIMIT*100, 1)))
             preparation_counter += 1
             
             if preparation_counter > PREPARATION_LIMIT:
@@ -218,11 +184,11 @@ with mss() as sct:
             wave_prediction = wave_model.predict(wave_scaler.transform([wave.reshape(height*width,)]))[0]
 
             if wave_prediction == 1:
-                print("[{}][{}/{}] WAVE 3 Detected".format(state, wave_counter, WAVE_LIMIT))
+                print("[{}][{}%] WAVE 3 Detected".format(state, round(wave_counter/WAVE_LIMIT*100, 1)))
                 wave_counter += 1
 
             if wave_counter > WAVE_LIMIT:
-                print("[{}][{}/{}] WAVE 3 Detected > {} times. Pressing 'ESC' now.".format(state, wave_counter, WAVE_LIMIT, WAVE_LIMIT))
+                print("[{}][{}%] WAVE 3 Detected > {} times. Pressing 'ESC' now.".format(state, round(wave_counter/WAVE_LIMIT*100, 1), WAVE_LIMIT))
                 pyautogui.press('escape')
                 state = "menu"
                 wave_counter = 0
@@ -234,25 +200,26 @@ with mss() as sct:
             drop_prediction = drop_model.predict(drop_scaler.transform([drop.reshape(height*width,)]))[0]
 
             if drop_prediction == 1:
-                print("[{}][{}/{}] PURPLE DROP Detected.".format(state, drop_counter, DROP_LIMIT))
+                print("[{}][{}%] PURPLE DROP Detected.".format(state, round(drop_counter/DROP_LIMIT*100, 1)))
                 drop_counter += 1
 
             if drop_counter > DROP_LIMIT:
-                print("[{}][{}/{}] PURPLE DROP Detected > {} times.".format(state, drop_counter, DROP_LIMIT, DROP_LIMIT))
+                print("[{}][{}%] PURPLE DROP Detected > {} times.".format(state, round(drop_counter/DROP_LIMIT*100, 1), DROP_LIMIT))
                 state == "battle"
                 drop_counter = 0
                 exit()
 
             if drop_prediction == 0:
-                print("[{}][{}/{}] NO PURPLE DROP".format(state, no_drop_counter, DROP_LIMIT))
+                print("[{}][{}%] NO PURPLE DROP".format(state, round(no_drop_counter/DROP_LIMIT*100, 1)))
                 no_drop_counter += 1
 
             if no_drop_counter > DROP_LIMIT:
-                print("[{}][{}/{}] NO PURPLE DROP. Quitting battle.".format(state, no_drop_counter, DROP_LIMIT))
+                print("[{}][{}%] NO PURPLE DROP. Quitting battle.".format(state, round(no_drop_counter/DROP_LIMIT*100, 1)))
                 pyautogui.click(x=930, y=775, interval=2)
                 pyautogui.click(x=930, y=775)
                 state = "preparation"
                 no_drop_counter = 0
+                drop_counter = 0
 
 #         print("fps: {}".format(1 / (time.time() - last_time)))
 
