@@ -7,11 +7,11 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import confusion_matrix, accuracy_score, f1_score
 
 def train_drop():
-    negative_samples = load_images("negative-drop")
+    negative_samples = load_images("data\\negative-drop")
     negative_samples = pd.DataFrame(np.array(negative_samples, dtype=np.float32))
     negative_samples["label"] = 0
 
-    positive_samples = load_images("positive-drop")
+    positive_samples = load_images("data\\positive-drop")
     positive_samples = pd.DataFrame(np.array(positive_samples, dtype=np.float32))
     positive_samples["label"] = 1
 
