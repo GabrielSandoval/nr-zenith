@@ -1,4 +1,0 @@
-jupyterlab
-numpy
-mss
-pillow
