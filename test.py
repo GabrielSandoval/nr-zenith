@@ -1,28 +1,25 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[1]:
-
 import os
+import sys
+import time
+
 import pandas as pd
-from PIL import Image
 import numpy as np
+import cv2
+
+from mss import mss
+from PIL import Image
 
 from sklearn.model_selection import train_test_split
 from sklearn.neural_network import MLPClassifier
 from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import classification_report, confusion_matrix, accuracy_score, f1_score
 
-import sys
-import cv2
-from mss import mss
-import time
-
 character = sys.argv[1]
 drop_type = sys.argv[2]
 print("Testing Lair: {}".format(character))
-
-# In[2]:
 
 def process_directory(directory, character=None):
     features = []
@@ -41,9 +38,6 @@ def preprocess(filepath):
     image = cv2.cvtColor(image, cv2.COLOR_BGRA2GRAY)
     height, width = image.shape
     return image.reshape(height*width,)
-
-# In[3]:
-
 
 def train_wave(character):
     negative_samples = process_directory("negative-wave", character=character)
@@ -77,10 +71,6 @@ def train_wave(character):
     
     return model, scaler
 wave_model, wave_scaler = train_wave(character)
-
-
-# In[4]:
-
 
 def train_drop():
     negative_samples = process_directory("negative-drop")
@@ -137,9 +127,8 @@ def grab_drops(sct, drop_type="purple"):
     cv2.imshow(winname, img)
     return img
     
-def grab_wave(sct):
-    wave = {'top': 125, 'left': 1520, 'width': 130, 'height': 35}
-    img = np.array(sct.grab(wave))
+def grab_wave(sct, wave_boundary):
+    img = np.array(sct.grab(wave_boundary))
     img = cv2.cvtColor(img, cv2.COLOR_BGRA2GRAY)
     
     #Display the picture in grayscale
@@ -152,6 +141,7 @@ def grab_wave(sct):
 
 # In[7]:
 
+WAVE_BOUNDARY = {'top': 130, 'left': 1600, 'width': 50, 'height': 25}
 PREPARATION_LIMIT = 500
 WAVE_LIMIT = 100
 DROP_LIMIT = 50
@@ -167,7 +157,7 @@ with mss() as sct:
     while "Screen capturing":
         last_time = time.time()
         
-        wave = grab_wave(sct)
+        wave = grab_wave(sct, WAVE_BOUNDARY)
         height, width = wave.shape
         wave_prediction = wave_model.predict(wave_scaler.transform([wave.reshape(height*width,)]))[0]
 

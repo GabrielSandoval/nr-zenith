@@ -136,7 +136,7 @@ def grab_drops(sct):
     return img
     
 def grab_wave(sct):
-    wave = {'top': 125, 'left': 1520, 'width': 130, 'height': 35}
+    wave = {'top': 130, 'left': 1600, 'width': 50, 'height': 25}
     img = np.array(sct.grab(wave))
     img = cv2.cvtColor(img, cv2.COLOR_BGRA2GRAY)
     
