@@ -21,7 +21,7 @@ with mss() as sct:
         height, width = drop.shape
         drop_prediction = drop_model.predict(drop_scaler.transform([drop.reshape(height*width,)]))[0]
 
-        fps = 1 / (time.time() - last_time)
+        fps = round(1 / (time.time() - last_time))
         print("WAVE 3 DETECTED: {} ; DROP DETECTED: {} ; FPS: {}".format(wave_prediction, drop_prediction, fps))
 
         # Press "q" to quit

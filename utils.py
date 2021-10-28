@@ -116,7 +116,7 @@ def grab_wave(sct, character, wave_boundary):
     img = np.array(sct.grab(wave_boundary))
     img = cv2.cvtColor(img, cv2.COLOR_BGRA2GRAY)
     # FOR COLLECTING DATA
-    cv2.imwrite("{}\\{}-{}.jpg".format(character, time.time()), img)
+    cv2.imwrite("{}\\{}-{}.jpg".format(character, character, time.time()), img)
 
 def grab_drop(sct, drop_boundary):
     img = np.array(sct.grab(drop_boundary))

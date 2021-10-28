@@ -3,6 +3,7 @@ import sys
 import numpy as np
 
 from mss import mss
+from constants import *
 from utils import *
 
 print("Gathering data for drops")
@@ -13,10 +14,10 @@ X_DEVIATION = 5
 for r in np.arange(-Y_DEVIATION, Y_DEVIATION):
     for c in np.arange(-X_DEVIATION, X_DEVIATION):
         drop_boundary = {
-            'top': BASE_BOUNDARY['top'] + r,
-            'left': BASE_BOUNDARY['left'] + c,
-            'width': BASE_BOUNDARY['width'],
-            'height': BASE_BOUNDARY['height']
+            'top': DROP_BOUNDARY['top'] + r,
+            'left': DROP_BOUNDARY['left'] + c,
+            'width': DROP_BOUNDARY['width'],
+            'height': DROP_BOUNDARY['height']
         }
         drop_boundaries.append(drop_boundary)
 boundary_index = 0
@@ -24,7 +25,7 @@ boundary_index = 0
 with mss() as sct:
     # Part of the screen to capture
     while "Screen capturing":
-        capture_drop(sct, BASE_BOUNDARY)
+        capture_drop(sct, DROP_BOUNDARY)
         grab_drop(sct, drop_boundaries[boundary_index])
 
         boundary_index += 1
