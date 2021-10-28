@@ -6,8 +6,11 @@ from constants import *
 
 character = "all"
 print("Testing detectors: {}".format(character))
-wave_model, wave_scaler = train_wave(character)
-drop_model, drop_scaler = train_drop()
+
+wave_model  = load_artifact("models\\{}_model.pkl".format(character))
+wave_scaler = load_artifact("models\\{}_scaler.pkl".format(character))
+drop_model  = load_artifact("models\\drop_model.pkl")
+drop_scaler = load_artifact("models\\drop_scaler.pkl")
 
 with mss() as sct:
     while "Screen capturing":
