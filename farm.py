@@ -50,7 +50,7 @@ with mss() as sct:
 
             if wave_counter > WAVE_LIMIT:
                 print("[{}][{}][{}%] WAVE 3 Detected > {} times. Pressing 'ESC' now.".format(retry_counter, state, round(wave_counter/WAVE_LIMIT*100, 1), WAVE_LIMIT))
-                pyautogui.click(x=930, y=300, interval=3)
+                pyautogui.click(x=930, y=300, interval=0.5)
                 pyautogui.press('escape')
                 state = "menu"
                 wave_counter = 0
